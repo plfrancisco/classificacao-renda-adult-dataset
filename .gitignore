@@ -1,0 +1,19 @@
+# Ambiente virtual Python
+.venv/
+venv/
+env/
+
+# Cache e bytecode do Python
+__pycache__/
+*.pyc
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Rascunho e versões finais do relatório: o PDF entregue ao professor é
+# gerado a partir daqui, mas não faz parte do código do projeto, então não
+# sobe para o repositório.
+relatorio_classificacao_adult.md
+relatorio_classificacao_adult.docx
+relatorio_classificacao_adult.pdf

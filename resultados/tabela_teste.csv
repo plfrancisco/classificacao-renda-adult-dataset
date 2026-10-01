@@ -1,0 +1,5 @@
+Modelo,Acurácia,Precisão,Recall,F1,AUC-ROC
+DummyClassifier,0.752,0.0,0.0,0.0,0.5
+LogisticRegression,0.845,0.732,0.588,0.652,0.901
+DecisionTreeClassifier,0.851,0.771,0.57,0.655,0.897
+RandomForestClassifier,0.853,0.806,0.533,0.642,0.908
