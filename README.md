@@ -1,77 +1,112 @@
-# Classificação de renda na base Adult (Census Income)
+# Classificação de Renda — Adult Census Income
 
-Comparação de quatro algoritmos de classificação para prever se a renda
-anual de uma pessoa é maior que 50 mil dólares, usando a base [Adult
-(Census Income)](https://archive.ics.uci.edu/dataset/2/adult), do UCI
-Machine Learning Repository. Projeto da disciplina de Aplicação de
-Ciência de Dados.
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikitlearn&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-3.0-150458?logo=pandas&logoColor=white)
+![status](https://img.shields.io/badge/status-concluído-success)
 
-## Resultados (conjunto de teste)
+Pipeline de ciência de dados que compara quatro algoritmos de classificação
+para prever se a renda anual de uma pessoa ultrapassa US$ 50 mil, a partir
+de variáveis demográficas e de trabalho do [censo dos EUA de 1994
+(dataset Adult / Census Income)](https://archive.ics.uci.edu/dataset/2/adult).
+
+## Sumário
+
+- [Visão geral](#visão-geral)
+- [Resultados](#resultados)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Como executar](#como-executar)
+- [Metodologia](#metodologia)
+- [Stack técnica](#stack-técnica)
+- [Autor](#autor)
+
+## Visão geral
+
+O pipeline cobre o fluxo completo de um projeto de classificação:
+diagnóstico e limpeza de dados, engenharia de atributos, treino e avaliação
+comparativa de modelos. O destaque técnico é a etapa de qualidade de dados:
+em vez de corrigir erros de digitação a partir de uma lista fixada à mão, um
+módulo dedicado (`verificador_paises.py`) valida cada valor da coluna de
+país contra uma base de referência real (`pycountry`), usando comparação
+aproximada de texto para detectar e corrigir grafias inválidas de forma
+automática e auditável.
+
+## Resultados
+
+Avaliação no conjunto de teste (9.035 registros, classes desbalanceadas:
+75,2% / 24,8%):
 
 | Modelo | Acurácia | Precisão | Recall | F1 | AUC-ROC |
 |---|---|---|---|---|---|
-| DummyClassifier | 0,752 | 0,000 | 0,000 | 0,000 | 0,500 |
-| LogisticRegression | 0,845 | 0,732 | 0,588 | 0,652 | 0,901 |
-| DecisionTreeClassifier | 0,851 | 0,770 | 0,571 | 0,655 | 0,897 |
-| RandomForestClassifier | 0,852 | 0,811 | 0,527 | 0,639 | 0,908 |
+| DummyClassifier (baseline) | 0,752 | 0,000 | 0,000 | 0,000 | 0,500 |
+| Logistic Regression | 0,845 | 0,732 | 0,588 | 0,652 | 0,901 |
+| Decision Tree | 0,851 | 0,770 | 0,571 | 0,655 | 0,897 |
+| **Random Forest** | **0,852** | **0,811** | 0,527 | 0,639 | **0,908** |
 
-Metodologia, critérios de comparação e discussão completa estão no
-relatório entregue separadamente (não incluído neste repositório).
+Discussão completa dos resultados, trade-offs entre precisão e recall, e
+análise de limitações estão no relatório técnico do projeto (entregue à
+parte, fora deste repositório).
 
-## Estrutura do repositório
+## Estrutura do projeto
 
 ```
-dados/            Base original do UCI (adult.data, adult.test, adult.names)
-                  e a base limpa gerada por limpeza/02_limpeza_dados.py
-                  (adult_limpo.csv).
-limpeza/          Scripts de diagnóstico, limpeza e auditoria dos dados.
-modelagem/        Scripts de análise exploratória, geração e avaliação
-                  dos modelos.
-figuras/          Gráficos gerados pelos scripts (PNG).
-resultados/       Tabelas de métricas geradas pelos scripts (CSV).
-requirements.txt  Dependências Python do projeto.
+.
+├── dados/            # Base bruta (UCI) e base tratada (adult_limpo.csv)
+├── limpeza/          # Pipeline de qualidade de dados (diagnóstico → limpeza → auditoria)
+│   ├── 01_verificacao_qualidade.py
+│   ├── 02_limpeza_dados.py
+│   ├── 03_verificacao_profunda.py
+│   ├── comum.py
+│   └── verificador_paises.py
+├── modelagem/        # Análise exploratória, treino e avaliação dos modelos
+│   ├── 01_analise_exploratoria.py
+│   └── 02_modelos_e_avaliacao.py
+├── figuras/          # Gráficos gerados (PNG)
+├── resultados/       # Métricas geradas (CSV)
+└── requirements.txt
 ```
 
-## Como reproduzir
+## Como executar
 
 ```bash
+# 1. Instalar dependências
 pip install -r requirements.txt
 
+# 2. Pipeline de dados
 cd limpeza
-python 01_verificacao_qualidade.py   # diagnóstico da base original (não corrige nada)
-python 02_limpeza_dados.py           # limpeza + correção de ortografia -> gera dados/adult_limpo.csv
-python 03_verificacao_profunda.py    # confirma a limpeza e audita mais a fundo
+python 01_verificacao_qualidade.py   # diagnóstico da base bruta (read-only)
+python 02_limpeza_dados.py           # limpeza + correção automática de ortografia
+python 03_verificacao_profunda.py    # valida a limpeza e audita relações entre colunas
 
+# 3. Modelagem
 cd ../modelagem
-python 01_analise_exploratoria.py    # gera as figuras 1 e 2
-python 02_modelos_e_avaliacao.py     # treina e avalia os quatro modelos
+python 01_analise_exploratoria.py
+python 02_modelos_e_avaliacao.py     # treina e avalia os 4 modelos
 ```
 
-Cada script é independente e pode ser executado isoladamente, desde que os
-anteriores já tenham sido rodados ao menos uma vez (cada um lê o resultado
-salvo pelo anterior).
+Cada etapa é independente e lê o artefato gerado pela anterior, então pode
+ser reexecutada isoladamente.
 
-## Metodologia, em resumo
+## Metodologia
 
-- **Algoritmos comparados:** DummyClassifier (referência), LogisticRegression,
-  DecisionTreeClassifier e RandomForestClassifier, todos com o mesmo
-  pré-processamento (padronização das variáveis numéricas e one-hot encoding
-  das categóricas) e a mesma divisão treino/teste estratificada (80%/20%,
-  `random_state = 42`).
-- **Avaliação:** validação cruzada estratificada de 5 partições no treino,
-  seguida de avaliação única no teste, com as métricas acurácia, precisão,
-  recall, F1 e AUC-ROC (a base é desbalanceada: 75,2% `<=50K`, 24,8% `>50K`).
-- **Limpeza de dados:** remoção de valores ausentes e duplicatas, e correção
-  de erros de ortografia em `native-country`, detectados automaticamente por
-  comparação com a lista de países da biblioteca `pycountry` (ver
-  `limpeza/verificador_paises.py`) -- não por uma lista de erros fixada de
-  antemão.
+- **Pré-processamento:** `ColumnTransformer` com padronização (`StandardScaler`)
+  para variáveis numéricas e one-hot encoding para categóricas, encapsulado
+  em `Pipeline` para evitar vazamento de dados entre treino e teste.
+- **Split:** 80/20 estratificado por classe, `random_state` fixo para
+  reprodutibilidade.
+- **Validação:** validação cruzada estratificada (5 folds) no treino +
+  avaliação única no conjunto de teste.
+- **Métricas:** acurácia, precisão, recall, F1 e AUC-ROC — escolhidas pelo
+  desbalanceamento de classes do dataset.
+- **Qualidade de dados:** detecção automática (não hardcoded) de erros de
+  ortografia por similaridade de texto contra uma base de países real,
+  checagens de consistência entre colunas, faixas numéricas plausíveis e
+  outliers via IQR.
 
-## Fonte dos dados
+## Stack técnica
 
-BECKER, B.; KOHAVI, R. **Adult**. UCI Machine Learning Repository, 1996.
-<https://archive.ics.uci.edu/dataset/2/adult>.
+Python · pandas · NumPy · scikit-learn · Matplotlib · Seaborn · pycountry
 
 ## Autor
 
-Pedro Lucas Francisco
+**Pedro Lucas Francisco**
